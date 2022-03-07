@@ -1,0 +1,95 @@
+<!-- See https://github.com/gorilla/websocket/blob/master/examples/chat/home.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Chat Example</title>
+    <link rel="stylesheet" href="assets/css/home.css">
+    <script type="text/javascript">
+        window.onload = function () {
+            const wsUrl = "ws://" + document.location.host + "/ws";
+            let conn;
+            let msg = document.getElementById("msg");
+            let log = document.getElementById("log");
+
+            function appendLog(item) {
+                let doScroll = log.scrollTop > log.scrollHeight - log.clientHeight - 1;
+                log.appendChild(item);
+                if (doScroll) {
+                    log.scrollTop = log.scrollHeight - log.clientHeight;
+                }
+            }
+
+            document.getElementById("form").onsubmit = function () {
+                if (!conn) {
+                    return false;
+                }
+                if (!msg.value) {
+                    return false;
+                }
+                conn.send(msg.value);
+                msg.value = "";
+                return false;
+            };
+
+            function setConnectionState(state) {
+                const stateElem = document.getElementById("state");
+                const stateMessageElem = document.getElementById("stateMessage");
+
+                if (state) {
+                    stateElem.style.backgroundColor = "#4cd137";
+                    stateElem.style.borderColor = "#44bd32";
+                    stateMessageElem.style.display = "none";
+
+                } else {
+                    stateElem.style.backgroundColor = "#e84118";
+                    stateElem.style.borderColor = "#c23616";
+                    stateMessageElem.style.display = "block";
+                }
+            }
+
+            function connectWebsocket(ws_endpoint) {
+                conn = new WebSocket(ws_endpoint);
+                conn.onclose = function (evt) {
+                    let item = document.createElement("div");
+                    setConnectionState(false);
+                    setInterval(() => connectWebsocket(ws_endpoint), 1000);
+                };
+                conn.onopen = function () {
+                    setConnectionState(true);
+                }
+                conn.onmessage = function (evt) {
+                    let messages = evt.data.split('\n');
+                    for (let i = 0; i < messages.length; i++) {
+                        let item = document.createElement("div");
+                        item.innerText = messages[i];
+                        appendLog(item);
+                    }
+                };
+            }
+
+            if (window["WebSocket"]) {
+                connectWebsocket(wsUrl);
+            } else {
+                let item = document.createElement("div");
+                item.innerHTML = "<b>Your browser does not support WebSockets.</b>";
+                appendLog(item);
+            }
+        };
+    </script>
+</head>
+<body>
+<div id="stateMessage">
+    <h2>Connection closed</h2>
+    <p>Try to connect to Backend.</p>
+    <div class="loader"></div>
+</div>
+<div id="log"></div>
+<form id="form">
+    <input type="submit" value="Send"/>
+    <input type="text" id="msg" size="64" autofocus autocomplete="off"/>
+</form>
+<div id="state"></div>
+
+</body>
+</html>
