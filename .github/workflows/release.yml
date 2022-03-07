@@ -1,5 +1,6 @@
 # .github/workflows/release.yaml
 # https://github.com/marketplace/actions/go-release-binaries
+# https://web3.coach/golang-github-actions-release-binaries-tutorial
 name: Release
 
 on:
