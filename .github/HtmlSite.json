@@ -1,0 +1,34 @@
+{
+  "elementId": "baseDiv",
+  "elementClass": "blabla",
+  "elementType": "div",
+  "children": [
+    {
+      "elementId": "1234546textdiv",
+      "elementClass": "blablabla",
+      "elementType": "div",
+      "children": [
+        {
+          "elementId": "123124123412text",
+          "elementClass": "literally stuff for css eventually",
+          "elementType": "text"
+        },
+        {
+          "elementId": "1234textbox",
+          "elementClass": "literally stuff for css eventually",
+          "elementType": "textbox"
+        }
+      ]
+    },
+    {
+      "elementId": "1234textbox",
+      "elementClass": "literally stuff for css eventually",
+      "elementType": "textbox"
+    },
+    {
+      "elementId": "1234textbox",
+      "elementClass": "literally stuff for css eventually",
+      "elementType": "textbox"
+    }
+  ]
+}

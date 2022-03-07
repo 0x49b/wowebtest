@@ -1,0 +1,6 @@
+{
+  "elementId": "1234textbox",
+  "elementClass": "literally stuff for css eventually",
+  "elementType": "textbox",
+  "targetToInsertInto": "exampleDiv"
+}
