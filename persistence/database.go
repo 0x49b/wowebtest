@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-const dbName = "fiber_test"
+const dbName = "jsonui"
 const mongoURI = "mongodb://woweb:wowebfs22@33339.hostserv.eu:27017/" + dbName
 
 type MongoInstance struct {
