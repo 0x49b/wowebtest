@@ -8,6 +8,7 @@
     <script type="text/javascript">
         window.onload = function () {
             const wsUrl = "ws://" + document.location.host + "/ws";
+            let reconnectInterval;
             let conn;
             let msg = document.getElementById("msg");
             let log = document.getElementById("log");
@@ -53,10 +54,11 @@
                 conn.onclose = function (evt) {
                     let item = document.createElement("div");
                     setConnectionState(false);
-                    setInterval(() => connectWebsocket(ws_endpoint), 1000);
+                    reconnectInterval = setInterval(() => connectWebsocket(ws_endpoint), 1000);
                 };
                 conn.onopen = function () {
                     setConnectionState(true);
+                    clearInterval(reconnectInterval);
                 }
                 conn.onmessage = function (evt) {
                     let messages = evt.data.split('\n');

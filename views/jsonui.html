@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Json UI</title>
+    <style>
+        .testdiv {
+            background-color: yellow;
+            color: maroon;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Json UI Test</h2>
+
+<button onclick="loadJsonUi()"> load Div();</button>
+<script>
+    function loadJsonUi() {
+        let request = new XMLHttpRequest();
+
+        const url = "http://" + document.location.host + "/jsonuielement";
+        request.open("GET", url);
+        request.addEventListener('load', function (event) {
+            if (request.status >= 200 && request.status < 300) {
+                parse(request.responseText);
+            } else {
+                console.warn(request.statusText, request.responseText);
+            }
+        });
+        request.send();
+    }
+
+    function parse(eleme) {
+
+        const body = document.querySelector("body");
+        const elem = JSON.parse(eleme);
+
+        let e = document.getElementById(elem.id);
+        if (e === null) {
+            e = document.createElement(elem.type.toLowerCase());
+            e.id = elem.id;
+            body.appendChild(e);
+        }
+
+        e.textContent = elem.text;
+        (elem.cssclass) ? e.classList.add(elem.cssclass) : "";
+
+        console.log("updated or created element " + elem.id);
+
+
+    }
+</script>
+</body>
+</html>

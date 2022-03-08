@@ -3,10 +3,12 @@ package main
 import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/template/html"
 	"github.com/gofiber/websocket/v2"
 	"github.com/lichtwellenreiter/wowebtest/persistence"
+	"go.mongodb.org/mongo-driver/bson"
 	"log"
 	"os"
 )
@@ -16,12 +18,20 @@ type client struct{} // Add more data to this type if needed
 var mg persistence.MongoInstance
 
 var (
-	port       = getEnv("PORT", "3000")
+	port       = getEnv("PORT", "3001")
 	clients    = make(map[*websocket.Conn]client) // Note: although large maps with pointer-like types (e.g. strings) as keys are slow, using pointers themselves as keys is acceptable and fast
 	register   = make(chan *websocket.Conn)
 	broadcast  = make(chan string)
 	unregister = make(chan *websocket.Conn)
 )
+
+type UiElement struct {
+	ID       string `json:"id"`
+	Type     string `json:"type"`
+	Text     string `json:"text,omitempty"`
+	Src      string `json:"src,omitempty"`
+	CssClass string `json:"cssclass,omitempty"`
+}
 
 func main() {
 
@@ -37,7 +47,7 @@ func main() {
 	// Connect to the database
 	mi, err := persistence.Connect()
 	if err != nil {
-		log.Fatal("Cannot connect to DB: ", err)
+		log.Fatal(err.Error())
 	}
 
 	mg = persistence.MongoInstance{
@@ -57,6 +67,11 @@ func setupApp(app *fiber.App) {
 		Format: "[${ip}]:${port} ${pid} ${status} - ${method} ${path}\n",
 	}))
 
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost, http://127.0.0.1",
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
+
 	app.Use(func(c *fiber.Ctx) error {
 		// Returns true if the client requested upgrade to the WebSocket protocol
 		if websocket.IsWebSocketUpgrade(c) {
@@ -64,6 +79,7 @@ func setupApp(app *fiber.App) {
 		}
 		return c.SendStatus(fiber.StatusUpgradeRequired)
 	})
+
 }
 
 func setupRoutes(app *fiber.App) {
@@ -76,8 +92,33 @@ func setupRoutes(app *fiber.App) {
 		return c.Render("document", nil)
 	})
 
-	app.Get("/panic", func(c *fiber.Ctx) error {
-		panic("Just a test")
+	app.Get("/jsonuielement", func(c *fiber.Ctx) error {
+
+		query := bson.D{{}}
+
+		cursor, err := mg.Db.Collection("jsonui").Find(c.Context(), query)
+
+		if err != nil {
+			return c.Status(500).SendString(err.Error())
+		}
+
+		var jsonelements []UiElement = make([]UiElement, 0)
+
+		if err := cursor.All(c.Context(), &jsonelements); err != nil {
+			return c.Status(500).SendString(err.Error())
+		}
+
+		/*testElement := UiElement{
+			ID:       "123456",
+			Type:     "div",
+			Text:     "This is a test div we do it now from database",
+			CssClass: "testdiv",
+		}*/
+		return c.JSON(jsonelements)
+	})
+
+	app.Get("/jsonui", func(c *fiber.Ctx) error {
+		return c.Render("jsonui", nil)
 	})
 
 	app.Get("/ws", websocket.New(func(c *websocket.Conn) {
