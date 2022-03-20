@@ -1,14 +1,18 @@
 function toHtml(json) {
-    json.ElementType = undefined;
-    json.class = undefined;
-    json.targetToInsertInto = undefined;
+    const htmlElem = JSON.parse(json);
+    const target = htmlElem.target === null
+        ? document.querySelector("body")
+        : document.getElementById(htmlElem.target);
 
-    const newElement = document.createElement(json.ElementType);
-    newElement.className = json.class;
-    newElement.id = json.id;
-    appendTo(json.targetToInsertInto)(newElement);
+    let e = document.getElementById(htmlElem.id);
+    if (e === null) {
+        e = document.createElement(htmlElem.type.toLowerCase());
+        e.id = htmlElem.id;
+        target.appendChild(e);
+    }
+    (htmlElem.cssclass) ? e.classList.add(htmlElem.cssclass) : "";
+    e.textContent = htmlElem.text;
+    if (htmlElem.children !== null) {
+        htmlElem.children.forEach(toHtml)
+    }
 }
-
-let appendTo = appendToId => newElement =>
-    appendToId === undefined || appendToId === null
-    ? document.body.appendChild(newElement) : document.getElementById(appendToId).appendChild(newElement);
