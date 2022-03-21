@@ -7,3 +7,6 @@ Hier können wir eigentlich die "HTML Elemente" in der DB speichern, somit kann 
 
 Wir müssen natürlich eine Struktur für das JSON Format definieren.
 ## MongoDB
+
+## Architektur JSONDrivenUI und SessionData
+Die JSONDrivenUI-Elemente sollen an sich keine Abhängigkeit zu der Session besitzen. Diese Elemente werden dann mit Go in der Session mit den notwendigen Informationen versehen.
