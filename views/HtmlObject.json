@@ -1,6 +1,118 @@
 {
-  "elementId": "1234textbox",
-  "elementClass": "literally stuff for css eventually",
-  "elementType": "textbox",
-  "targetToInsertInto": "exampleDiv"
+  "id": "documentContainer",
+  "cssclass": "container document",
+  "type": "div",
+  "target": null,
+  "text": null,
+  "children": [
+    {
+      "id": "topAction",
+      "cssclass": "top-action",
+      "type": "div",
+      "target": "documentContainer",
+      "children": [
+        {
+          "id": "backLink",
+          "cssclass": "back",
+          "type": "a",
+          "target": "topAction",
+          "text": "Übersicht"
+        }
+      ]
+    },
+    {
+      "id": "centerCol",
+      "cssclass": "center-col",
+      "type": "div",
+      "target": "documentContainer",
+      "text": null,
+      "children": [
+        {
+          "id": "titleDoc1",
+          "type": "h1",
+          "target": "centerCol",
+          "text": "Document 1108ee4f-37cc-4d3b-8699-b93fba31d9f5"
+        },
+        {
+          "id": "paragraphDoc1",
+          "cssclass": "paragraph",
+          "type": "div",
+          "target": "centerCol",
+          "text": null,
+          "children": [
+            {
+              "id": "actionsDoc1",
+              "cssclass": "actions",
+              "type": "div",
+              "target": "paragraphDoc1",
+              "children": [
+                {
+                  "id": "actionsDragDoc1",
+                  "cssclass": "action drag",
+                  "type": "div",
+                  "target": "actionsDoc1"
+                },
+                {
+                  "id": "actionsUserDoc1",
+                  "cssclass": "action user",
+                  "type": "div",
+                  "target": "actionsDoc1",
+                  "children": [
+                    {
+                      "id": "actionsUserTextDoc1",
+                      "cssclass": "action-text right",
+                      "type": "div",
+                      "target": "actionsUserDoc1",
+                      "text": "Floian"
+                    }
+                  ]
+                },
+                {
+                  "id": "actionsTrashDoc1",
+                  "cssclass": "action trash",
+                  "type": "div",
+                  "target": "actionsDoc1",
+                  "children": [
+                    {
+                      "id": "actionsTrashTextDoc1",
+                      "cssclass": "action-text right",
+                      "type": "div",
+                      "target": "actionsTrashDoc1",
+                      "text": "löschen"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "labelTextDoc1",
+              "type": "label",
+              "target": "paragraphDoc1",
+              "children": [
+                {
+                  "id": "labelTextAreaDoc1",
+                  "type": "textarea",
+                  "target": "labelTextDoc1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "Doc1Add",
+          "cssclass": "document-action",
+          "type": "div",
+          "target": "centerCol",
+          "children": [
+            {
+              "id": "Doc1AddDetail",
+              "cssclass": "action add",
+              "type": "div",
+              "target": "Doc1Add"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }
