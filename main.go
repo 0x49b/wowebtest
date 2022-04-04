@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/template/html"
 	"github.com/gofiber/websocket/v2"
 	"github.com/lichtwellenreiter/wowebtest/persistence"
 	"go.mongodb.org/mongo-driver/bson"
-	"log"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"os"
 )
 
@@ -23,6 +23,7 @@ var (
 	register   = make(chan *websocket.Conn)
 	broadcast  = make(chan string)
 	unregister = make(chan *websocket.Conn)
+	zaplog     *zap.SugaredLogger
 )
 
 type UiElement struct {
@@ -47,7 +48,8 @@ func main() {
 	// Connect to the database
 	mi, err := persistence.Connect()
 	if err != nil {
-		log.Fatal(err.Error())
+		//log.Fatal(err.Error())
+		zaplog.Error(err.Error())
 	}
 
 	mg = persistence.MongoInstance{
@@ -57,16 +59,22 @@ func main() {
 
 	go runHub()
 
-	log.Fatal(app.Listen(fmt.Sprintf(":%v", port)))
+	//log.Fatal(app.Listen(fmt.Sprintf(":%v", port)))
+	zaplog.Fatal(app.Listen(fmt.Sprintf(":%v", port)))
 }
 
 func setupApp(app *fiber.App) {
 	app.Static("/", "./views")
 
-	app.Use(logger.New(logger.Config{
-		Format: "[${ip}]:${port} ${pid} ${status} - ${method} ${path}\n",
-	}))
+	logInit(false)
+	zaplog.Sync()
+	zaplog.Info("Init Logger")
 
+	/*
+		app.Use(logger.New(logger.Config{
+			Format: "[${ip}]:${port} ${pid} ${status} - ${method} ${path}\n",
+		}))
+	*/
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "http://localhost, http://127.0.0.1",
 		AllowHeaders: "Origin, Content-Type, Accept",
@@ -135,7 +143,9 @@ func setupRoutes(app *fiber.App) {
 			messageType, message, err := c.ReadMessage()
 			if err != nil {
 				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-					log.Println("read error:", err)
+					//log.Println("read error:", err)
+					zaplog.Info("read error:", err)
+
 				}
 
 				return // Calls the deferred function, i.e. closes the connection on error
@@ -145,7 +155,9 @@ func setupRoutes(app *fiber.App) {
 				// Broadcast the received message
 				broadcast <- string(message)
 			} else {
-				log.Println("websocket message received of type", messageType)
+				//log.Println("websocket message received of type", messageType)
+				zaplog.Info("websocket message received of type", messageType)
+
 			}
 		}
 	}))
@@ -165,15 +177,18 @@ func runHub() {
 		select {
 		case connection := <-register:
 			clients[connection] = client{}
-			log.Println("connection registered")
+			//log.Println("connection registered")
+			zaplog.Info("connection registered")
 
 		case message := <-broadcast:
-			log.Println("message received:", message)
+			//log.Println("message received:", message)
+			zaplog.Info("message received:", message)
 
 			// Send the message to all clients
 			for connection := range clients {
 				if err := connection.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
-					log.Println("write error:", err)
+					//log.Println("write error:", err)
+					zaplog.Info("write error:", err)
 
 					connection.WriteMessage(websocket.CloseMessage, []byte{})
 					connection.Close()
@@ -185,7 +200,35 @@ func runHub() {
 			// Remove the client from the hub
 			delete(clients, connection)
 
-			log.Println("connection unregistered")
+			zaplog.Info("connection unregistered")
 		}
 	}
+}
+
+func logInit(d bool) {
+
+	f, err := os.OpenFile("tmp/logfile.txt", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+	if err != nil {
+		fmt.Println(err)
+	}
+	pe := zap.NewProductionEncoderConfig()
+
+	fileEncoder := zapcore.NewJSONEncoder(pe)
+
+	pe.EncodeTime = zapcore.ISO8601TimeEncoder
+	consoleEncoder := zapcore.NewConsoleEncoder(pe)
+
+	level := zap.InfoLevel
+	if d {
+		level = zap.DebugLevel
+	}
+
+	core := zapcore.NewTee(
+		zapcore.NewCore(fileEncoder, zapcore.AddSync(f), level),
+		zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), level),
+	)
+
+	l := zap.New(core)
+
+	zaplog = l.Sugar()
 }
